@@ -8,6 +8,7 @@ import {
   List,
   ListItem,
   useClipboard,
+  useToast,
   Card,
   CardBody,
   FormControl,
@@ -20,6 +21,7 @@ function UploadForm({ onSuccess, onError }) {
   const [links, setLinks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const { onCopy } = useClipboard('');
+  const toast = useToast();
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -128,18 +130,31 @@ function UploadForm({ onSuccess, onError }) {
             <Text mb={4} fontWeight="bold">Generated Download Links:</Text>
             <List spacing={3}>
               {links.map((link, index) => (
-                <ListItem key={index}>
-                  <Link 
-                    href={link.proxy} 
-                    color="blue.500" 
-                    isExternal
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onCopy(link.proxy);
+                <ListItem key={index} display="flex" alignItems="center" gap={2}>
+                  <Text flex="1" isTruncated>{link}</Text>
+                  <Button
+                    size="sm"
+                    colorScheme="blue"
+                    onClick={() => {
+                      onCopy(link);
+                      toast({
+                        title: "Copied to clipboard!",
+                        description: "Download URL has been copied",
+                        status: "success",
+                        duration: 2000,
+                        isClosable: true,
+                      });
                     }}
                   >
-                    {link.proxy}
-                  </Link>
+                    Copy
+                  </Button>
+                  <Button
+                    size="sm"
+                    colorScheme="green"
+                    onClick={() => window.open(link, '_blank')}
+                  >
+                    Open
+                  </Button>
                 </ListItem>
               ))}
             </List>
