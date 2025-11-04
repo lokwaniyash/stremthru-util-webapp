@@ -12,6 +12,48 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Middleware to check authentication
+const checkAuth = (req, res, next) => {
+    const authToken = req.headers.authorization?.split(' ')[1];
+    if (!authToken || authToken !== process.env.ACCESS_TOKEN) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    next();
+};
+
+// Login endpoint
+app.post('/api/auth/login', (req, res) => {
+    const { password } = req.body;
+    if (password === process.env.ACCESS_PASSWORD) {
+        // Return the access token if password matches
+        return res.json({ 
+            success: true, 
+            token: process.env.ACCESS_TOKEN 
+        });
+    }
+    return res.status(401).json({ error: 'Invalid password' });
+});
+
+// Apply auth middleware to all routes except login
+app.use('/api/*', (req, res, next) => {
+    if (req.path === '/api/auth/login') {
+        return next();
+    }
+    return checkAuth(req, res, next);
+});
+
+// Get list of torrents
+app.get('/api/torrents', async (req, res) => {
+    try {
+        const torrentsInfo = await realDebridRequest('/torrents');
+        console.log('Fetched torrents:', torrentsInfo);
+        return res.json({ success: true, torrents: torrentsInfo });
+    } catch (error) {
+        console.error('Error fetching torrents:', error);
+        return res.status(500).json({ error: error.message || 'Failed to fetch torrents' });
+    }
+});
+
 // Helper function to interact with Real-Debrid API
 async function realDebridRequest(endpoint, options = {}) {
     const baseUrl = 'https://api.real-debrid.com/rest/1.0';
@@ -211,6 +253,40 @@ app.post('/api/torrent', upload.single('torrent'), async (req, res) => {
     } catch (error) {
         console.error('Error processing torrent file:', error);
         return res.status(500).json({ error: error.message || 'Failed to process torrent file' });
+    }
+});
+
+app.post('/api/unrestrict-link', async (req, res) => {
+    try {
+        const { link } = req.body;
+        
+        if (!link) {
+            return res.status(400).json({ error: 'No link provided' });
+        }
+
+        // Unrestrict the link through Real-Debrid
+        const unrestrictData = await realDebridRequest('/unrestrict/link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `link=${encodeURIComponent(link)}`
+        });
+
+        // Create proxy URL from unrestricted link
+        const proxyUrl = createProxyUrl(unrestrictData.download);
+        console.log('Generated proxy URL:', proxyUrl);
+
+        const response = await fetch(proxyUrl);
+        const data = await response.json();
+        console.log('Stremthru response:', data);
+        let downloadUrl;
+        if (data.data && data.data.items && data.data.items.length > 0) {
+            downloadUrl=data.data.items[0];
+        }
+
+        return res.json({ success: true, proxyUrl: downloadUrl });
+    } catch (error) {
+        console.error('Error unrestricting link:', error);
+        return res.status(500).json({ error: error.message || 'Failed to unrestrict link' });
     }
 });
 

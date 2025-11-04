@@ -4,7 +4,6 @@ import {
   Input,
   Button,
   Text,
-  Link,
   List,
   ListItem,
   useClipboard,
@@ -48,8 +47,12 @@ function UploadForm({ onSuccess, onError }) {
         const formData = new FormData();
         formData.append('torrent', file);
         
-        response = await fetch(`${process.env.REACT_APP_API_URL}/torrent`, {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/torrent`, {
           method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
           body: formData,
         });
       }
@@ -75,7 +78,7 @@ function UploadForm({ onSuccess, onError }) {
 
   return (
     <VStack spacing={6} width="100%">
-      <Card width="100%">
+      <Card width="100%" bg="gray.800" borderColor="gray.700">
         <CardBody>
           <VStack spacing={4}>
             <FormControl>
@@ -85,10 +88,13 @@ function UploadForm({ onSuccess, onError }) {
                 accept=".torrent"
                 onChange={handleFileChange}
                 padding={1}
+                bg="gray.700"
+                borderColor="gray.600"
+                _hover={{ borderColor: 'gray.500' }}
               />
             </FormControl>
             <Button
-              colorScheme="blue"
+              colorScheme="teal"
               onClick={() => handleSubmit('file')}
               isDisabled={!file || isLoading}
               isLoading={isLoading}
@@ -100,7 +106,7 @@ function UploadForm({ onSuccess, onError }) {
         </CardBody>
       </Card>
 
-      <Card width="100%">
+      <Card width="100%" bg="gray.800" borderColor="gray.700">
         <CardBody>
           <VStack spacing={4}>
             <FormControl>
@@ -109,10 +115,13 @@ function UploadForm({ onSuccess, onError }) {
                 placeholder="magnet:?xt=urn:btih:..."
                 value={magnet}
                 onChange={handleMagnetChange}
+                bg="gray.700"
+                borderColor="gray.600"
+                _hover={{ borderColor: 'gray.500' }}
               />
             </FormControl>
             <Button
-              colorScheme="blue"
+              colorScheme="teal"
               onClick={() => handleSubmit('magnet')}
               isDisabled={!magnet || isLoading}
               isLoading={isLoading}
@@ -125,7 +134,7 @@ function UploadForm({ onSuccess, onError }) {
       </Card>
 
       {links.length > 0 && (
-        <Card width="100%">
+        <Card width="100%" bg="gray.800" borderColor="gray.700">
           <CardBody>
             <Text mb={4} fontWeight="bold">Generated Download Links:</Text>
             <List spacing={3}>
@@ -134,7 +143,7 @@ function UploadForm({ onSuccess, onError }) {
                   <Text flex="1" isTruncated>{link}</Text>
                   <Button
                     size="sm"
-                    colorScheme="blue"
+                    colorScheme="teal"
                     onClick={() => {
                       onCopy(link);
                       toast({
