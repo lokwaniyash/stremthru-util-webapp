@@ -78,13 +78,31 @@ app.post('/api/magnet', async (req, res) => {
         // Get torrent info and links
         const info = await realDebridRequest(`/torrents/info/${addResponse.id}`);
         
-        // Create proxy URLs for each link
-        const proxyLinks = info.links.map(link => ({
-            original: link,
-            proxy: createProxyUrl(link)
+        // Unrestrict each link to get the actual download URL
+        const unrestrictedLinks = await Promise.all(info.links.map(async (link) => {
+            const unrestrictData = await realDebridRequest('/unrestrict/link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `link=${encodeURIComponent(link)}`
+            });
+            return unrestrictData.download;
         }));
 
-        res.json({ success: true, links: proxyLinks });
+        // Get download URLs from stremthru for each unrestricted link
+        const downloadUrls = [];
+        for (const link of unrestrictedLinks) {
+            const proxyUrl = createProxyUrl(link);
+            console.log('Fetching from stremthru:', proxyUrl);
+            const response = await fetch(proxyUrl);
+            const data = await response.json();
+            console.log('Stremthru response:', data);
+            if (data.data && data.data.items && data.data.items.length > 0) {
+                downloadUrls.push(...data.data.items);
+            }
+        }
+
+        console.log('Final download URLs:', downloadUrls);
+        return res.json({ success: true, links: downloadUrls });
     } catch (error) {
         console.error('Error processing magnet link:', error);
         res.status(500).json({ error: 'Failed to process magnet link' });
