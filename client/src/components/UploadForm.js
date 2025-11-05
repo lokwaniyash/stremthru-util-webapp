@@ -1,179 +1,197 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  VStack,
-  Input,
-  Button,
-  Text,
-  List,
-  ListItem,
-  useClipboard,
-  useToast,
-  Card,
-  CardBody,
-  FormControl,
-  FormLabel,
-} from '@chakra-ui/react';
+    VStack,
+    Input,
+    Button,
+    Text,
+    List,
+    ListItem,
+    useClipboard,
+    useToast,
+    Card,
+    CardBody,
+    FormControl,
+    FormLabel,
+} from "@chakra-ui/react";
 
 function UploadForm({ onSuccess, onError }) {
-  const [file, setFile] = useState(null);
-  const [magnet, setMagnet] = useState('');
-  const [links, setLinks] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const { onCopy } = useClipboard('');
-  const toast = useToast();
+    const [file, setFile] = useState(null);
+    const [magnet, setMagnet] = useState("");
+    const [links, setLinks] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const { onCopy } = useClipboard("");
+    const toast = useToast();
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);
+    };
 
-  const handleMagnetChange = (e) => {
-    setMagnet(e.target.value);
-  };
+    const handleMagnetChange = (e) => {
+        setMagnet(e.target.value);
+    };
 
-  const handleSubmit = async (type) => {
-    setIsLoading(true);
-    try {
-      let response;
-      
-      if (type === 'magnet') {
-        response = await fetch(`${process.env.REACT_APP_API_URL}/magnet`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ magnetLink: magnet }),
-        });
-      } else {
-        const formData = new FormData();
-        formData.append('torrent', file);
-        
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/torrent`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          body: formData,
-        });
-      }
+    const handleSubmit = async (type) => {
+        setIsLoading(true);
+        try {
+            let response;
 
-      if(response) {
-          const data = await response.json();
-          
-          if (!response.ok) {
-            throw new Error(data.error || 'Failed to process request');
-          }
-    
-          setLinks(data.links);
-          onSuccess(data.links);
-          
-          // Clear form
-          setFile(null);
-          setMagnet('');
-      }
-    } catch (error) {
-      onError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+            if (type === "magnet") {
+                response = await fetch(
+                    `${process.env.REACT_APP_API_URL}/magnet`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ magnetLink: magnet }),
+                    }
+                );
+            } else {
+                const formData = new FormData();
+                formData.append("torrent", file);
 
-  return (
-    <VStack spacing={6} width="100%">
-      <Card width="100%" bg="gray.800" borderColor="gray.700">
-        <CardBody>
-          <VStack spacing={4}>
-            <FormControl>
-              <FormLabel>Upload Torrent File</FormLabel>
-              <Input
-                type="file"
-                accept=".torrent"
-                onChange={handleFileChange}
-                padding={1}
-                bg="gray.700"
-                borderColor="gray.600"
-                _hover={{ borderColor: 'gray.500' }}
-              />
-            </FormControl>
-            <Button
-              colorScheme="teal"
-              onClick={() => handleSubmit('file')}
-              isDisabled={!file || isLoading}
-              isLoading={isLoading}
-              width="100%"
-            >
-              Upload Torrent
-            </Button>
-          </VStack>
-        </CardBody>
-      </Card>
+                const token = localStorage.getItem("authToken");
+                response = await fetch(
+                    `${process.env.REACT_APP_API_URL}/torrent`,
+                    {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: formData,
+                    }
+                );
+            }
+            
+            if (response) {
+                const data = await response.json();
 
-      <Card width="100%" bg="gray.800" borderColor="gray.700">
-        <CardBody>
-          <VStack spacing={4}>
-            <FormControl>
-              <FormLabel>Or Paste Magnet Link</FormLabel>
-              <Input
-                placeholder="magnet:?xt=urn:btih:..."
-                value={magnet}
-                onChange={handleMagnetChange}
-                bg="gray.700"
-                borderColor="gray.600"
-                _hover={{ borderColor: 'gray.500' }}
-              />
-            </FormControl>
-            <Button
-              colorScheme="teal"
-              onClick={() => handleSubmit('magnet')}
-              isDisabled={!magnet || isLoading}
-              isLoading={isLoading}
-              width="100%"
-            >
-              Submit Magnet
-            </Button>
-          </VStack>
-        </CardBody>
-      </Card>
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to process request");
+                }
 
-      {links.length > 0 && (
-        <Card width="100%" bg="gray.800" borderColor="gray.700">
-          <CardBody>
-            <Text mb={4} fontWeight="bold">Generated Download Links:</Text>
-            <List spacing={3}>
-              {links.map((link, index) => (
-                <ListItem key={index} display="flex" alignItems="center" gap={2}>
-                  <Text flex="1" isTruncated>{link}</Text>
-                  <Button
-                    size="sm"
-                    colorScheme="teal"
-                    onClick={() => {
-                      onCopy(link);
-                      toast({
-                        title: "Copied to clipboard!",
-                        description: "Download URL has been copied",
-                        status: "success",
-                        duration: 2000,
-                        isClosable: true,
-                      });
-                    }}
-                  >
-                    Copy
-                  </Button>
-                  <Button
-                    size="sm"
-                    colorScheme="green"
-                    onClick={() => window.open(link, '_blank')}
-                  >
-                    Open
-                  </Button>
-                </ListItem>
-              ))}
-            </List>
-          </CardBody>
-        </Card>
-      )}
-    </VStack>
-  );
+                setLinks(data.links);
+                onSuccess(data.links);
+
+                // Clear form
+                setFile(null);
+                setMagnet("");
+            }
+        } catch (error) {
+            onError(error.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <VStack spacing={6} width="100%">
+            <Card width="100%" bg="gray.800" borderColor="gray.700">
+                <CardBody>
+                    <VStack spacing={4}>
+                        <FormControl>
+                            <FormLabel>Upload Torrent File</FormLabel>
+                            <Input
+                                type="file"
+                                accept=".torrent"
+                                onChange={handleFileChange}
+                                padding={1}
+                                bg="gray.700"
+                                borderColor="gray.600"
+                                _hover={{ borderColor: "gray.500" }}
+                            />
+                        </FormControl>
+                        <Button
+                            colorScheme="teal"
+                            onClick={() => handleSubmit("file")}
+                            isDisabled={!file || isLoading}
+                            isLoading={isLoading}
+                            width="100%"
+                        >
+                            Upload Torrent
+                        </Button>
+                    </VStack>
+                </CardBody>
+            </Card>
+
+            <Card width="100%" bg="gray.800" borderColor="gray.700">
+                <CardBody>
+                    <VStack spacing={4}>
+                        <FormControl>
+                            <FormLabel>Or Paste Magnet Link</FormLabel>
+                            <Input
+                                placeholder="magnet:?xt=urn:btih:..."
+                                value={magnet}
+                                onChange={handleMagnetChange}
+                                bg="gray.700"
+                                borderColor="gray.600"
+                                _hover={{ borderColor: "gray.500" }}
+                            />
+                        </FormControl>
+                        <Button
+                            colorScheme="teal"
+                            onClick={() => handleSubmit("magnet")}
+                            isDisabled={!magnet || isLoading}
+                            isLoading={isLoading}
+                            width="100%"
+                        >
+                            Submit Magnet
+                        </Button>
+                    </VStack>
+                </CardBody>
+            </Card>
+
+            {links.length > 0 && (
+                <Card width="100%" bg="gray.800" borderColor="gray.700">
+                    <CardBody>
+                        <Text mb={4} fontWeight="bold">
+                            Generated Download Links:
+                        </Text>
+                        <List spacing={3}>
+                            {links.map((link, index) => (
+                                <ListItem
+                                    key={index}
+                                    display="flex"
+                                    alignItems="center"
+                                    gap={2}
+                                >
+                                    <Text flex="1" isTruncated>
+                                        {link}
+                                    </Text>
+                                    <Button
+                                        size="sm"
+                                        colorScheme="teal"
+                                        onClick={() => {
+                                            onCopy(link);
+                                            toast({
+                                                title: "Copied to clipboard!",
+                                                description:
+                                                    "Download URL has been copied",
+                                                status: "success",
+                                                duration: 2000,
+                                                isClosable: true,
+                                            });
+                                        }}
+                                    >
+                                        Copy
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        colorScheme="green"
+                                        onClick={() =>
+                                            window.open(link, "_blank")
+                                        }
+                                    >
+                                        Open
+                                    </Button>
+                                </ListItem>
+                            ))}
+                        </List>
+                    </CardBody>
+                </Card>
+            )}
+        </VStack>
+    );
 }
 
 export default UploadForm;
