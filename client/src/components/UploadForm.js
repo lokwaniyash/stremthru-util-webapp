@@ -57,18 +57,20 @@ function UploadForm({ onSuccess, onError }) {
         });
       }
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to process request');
+      if(response) {
+          const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to process request');
+          }
+    
+          setLinks(data.links);
+          onSuccess(data.links);
+          
+          // Clear form
+          setFile(null);
+          setMagnet('');
       }
-
-      setLinks(data.links);
-      onSuccess(data.links);
-      
-      // Clear form
-      setFile(null);
-      setMagnet('');
     } catch (error) {
       onError(error.message);
     } finally {
