@@ -42,6 +42,7 @@ function UploadForm({ onSuccess, onError }) {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
                         },
                         body: JSON.stringify({ magnetLink: magnet }),
                     }
