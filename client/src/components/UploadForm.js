@@ -34,6 +34,7 @@ function UploadForm({ onSuccess, onError }) {
         setIsLoading(true);
         try {
             let response;
+            const token = localStorage.getItem("authToken");
 
             if (type === "magnet") {
                 response = await fetch(
@@ -51,7 +52,6 @@ function UploadForm({ onSuccess, onError }) {
                 const formData = new FormData();
                 formData.append("torrent", file);
 
-                const token = localStorage.getItem("authToken");
                 response = await fetch(
                     `${process.env.REACT_APP_API_URL}/torrent`,
                     {
