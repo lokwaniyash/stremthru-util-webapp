@@ -160,7 +160,7 @@ function TorrentList() {
         // Refresh every 30 seconds
         const interval = setInterval(fetchTorrents, 300000);
         return () => clearInterval(interval);
-    });
+    }, []);
 
     const getStatusBadge = (status) => {
         const statusColors = {
