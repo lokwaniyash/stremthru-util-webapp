@@ -46,7 +46,7 @@ function UploadForm({ onSuccess, onError }) {
                             Authorization: `Bearer ${token}`,
                         },
                         body: JSON.stringify({ magnetLink: magnet }),
-                    }
+                    },
                 );
             } else {
                 const formData = new FormData();
@@ -60,10 +60,10 @@ function UploadForm({ onSuccess, onError }) {
                             Authorization: `Bearer ${token}`,
                         },
                         body: formData,
-                    }
+                    },
                 );
             }
-            
+
             if (response) {
                 const data = await response.json();
 

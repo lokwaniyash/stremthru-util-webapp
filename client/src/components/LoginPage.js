@@ -7,7 +7,6 @@ import {
     FormLabel,
     useToast,
     Container,
-    Heading,
 } from "@chakra-ui/react";
 
 function LoginPage({ onLogin }) {
@@ -28,7 +27,7 @@ function LoginPage({ onLogin }) {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({ password }),
-                }
+                },
             );
 
             const data = await response.json();

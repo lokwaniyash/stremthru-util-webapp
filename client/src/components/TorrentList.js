@@ -16,7 +16,6 @@ import {
     HStack,
     Icon,
     Tooltip,
-    useClipboard,
 } from "@chakra-ui/react";
 import { RepeatIcon } from "@chakra-ui/icons";
 
@@ -39,7 +38,7 @@ function TorrentActions({ link, toast }) {
                         Authorization: `Bearer ${token}`,
                     },
                     body: JSON.stringify({ link: link }),
-                }
+                },
             );
 
             const data = await response.json();
@@ -140,7 +139,7 @@ function TorrentList() {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
-                }
+                },
             );
             const data = await response.json();
             setTorrents(data.torrents);
@@ -161,7 +160,7 @@ function TorrentList() {
         // Refresh every 30 seconds
         const interval = setInterval(fetchTorrents, 300000);
         return () => clearInterval(interval);
-    }, []);
+    });
 
     const getStatusBadge = (status) => {
         const statusColors = {

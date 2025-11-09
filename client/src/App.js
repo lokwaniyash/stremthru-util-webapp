@@ -4,7 +4,6 @@ import {
     ColorModeScript,
     Container,
     VStack,
-    Heading,
     useToast,
     Tabs,
     TabList,
@@ -38,7 +37,7 @@ function App() {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
-                    }
+                    },
                 );
 
                 if (!response.ok) {
